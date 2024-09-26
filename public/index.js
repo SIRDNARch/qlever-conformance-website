@@ -328,8 +328,7 @@ function handleAccordion(itemId, collapse) {
 
 function decompressToJSON(compressedData) {
     const compressedArray = new Uint8Array(compressedData);
-    const decompressedData = Bzip2.decompress(compressedArray);
-    const jsonString = new TextDecoder().decode(decompressedData);
+    const jsonString = bzip2.simple(bzip2.array(compressedArray));
     console.log(jsonString)
     const data = JSON.parse(jsonString);
     return data;
