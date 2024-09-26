@@ -326,6 +326,15 @@ function handleAccordion(itemId, collapse) {
     }
 }
 
+function decompressToJSON(compressedData) {
+    const compressedArray = new Uint8Array(compressedData);
+    const decompressedData = Bzip2.decompress(compressedArray);
+    const jsonString = new TextDecoder().decode(decompressedData);
+    console.log(jsonString)
+    const data = JSON.parse(jsonString);
+    return data;
+}
+
 async function fetchData() {
     var loadAll = true;
     var jsonData = {};
@@ -353,11 +362,14 @@ async function fetchData() {
             console.log(fileUrl)
             try {
                 var response = await fetch(fileUrl);
+                console.log(response)
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                var data = await response.json();
-                var name = fileName.replace(".json", "");
+                const compressedData = await response.arrayBuffer();
+                console.log(response)
+                var data = decompressToJSON(compressedData);
+                var name = fileName.replace(".json.bz2", "");
                 console.log(name)
                 jsonData[name] = data;
             } catch (error) {
@@ -371,18 +383,19 @@ async function fetchData() {
     {
         fileList = [run1,  run2]
         for (var file of fileList) {
-            var fileUrl = "http://localhost:3000/results/" + file + ".json";
+            var fileUrl = "http://localhost:3000/results/" + file + ".json.bz2";
             try {
                 var response = await fetch(fileUrl);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                var data = await response.json();
+                const compressedData = await response.arrayBuffer();
+                var data = decompressToJSON(compressedData);
                 var name = file;
                 jsonData[name] = data;
                 console.log(jsonData)
             } catch (error) {
-                console.error("Error fetching file:", file + ".json", error);
+                console.error("Error fetching file:", file + ".json.bz2", error);
             }
         }
     
