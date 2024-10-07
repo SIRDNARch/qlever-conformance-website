@@ -28,6 +28,19 @@ docker build -t website-example .
 docker run -p 3001:3000 -v /Users/ricoandris/Desktop/project/results:/usr/src/app/results website-example
 ```
 
+Explanation:
+
+The server will be reachable on the port 3001 of your machine.
+
+```
+-v /Users/username/Desktop/project/results:/usr/src/app/results website-example
+```
+
+This mounts your directory (which is the first path, do not change the second path) to the results directory used by the server.
+
+Set it to the directory containing the result files.
+
+
 ### Using NPM
   
 ```
