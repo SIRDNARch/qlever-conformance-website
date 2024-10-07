@@ -1,3 +1,5 @@
+const websiteAdress = "http://localhost:3001";
+
 $(document).ready(async function() {
     var data = await fetchData();
     var jsonData = data[0];
@@ -338,8 +340,8 @@ async function fetchData() {
     var loadAll = true;
     var jsonData = {};
     // TODO: fix URL
-    var resultsPath = "http://localhost:3000/results";
-    var fullPath = window.location.pathname;
+    const resultsPath = `${websiteAdress}/results`;
+    const fullPath = window.location.pathname;
     var fileName = fullPath.substring(fullPath.lastIndexOf('/') + 1);
     if (fileName.includes("-")) {
         var parts = fileName.split('-');
@@ -357,7 +359,7 @@ async function fetchData() {
     console.log(fileList)
     if (loadAll){
         for (var fileName of fileList) {
-            var fileUrl = "http://localhost:3000/results/" + fileName;
+            var fileUrl = `${resultsPath}/${fileName}`;
             console.log(fileUrl)
             try {
                 var response = await fetch(fileUrl);
@@ -382,7 +384,7 @@ async function fetchData() {
     {
         fileList = [run1,  run2]
         for (var file of fileList) {
-            var fileUrl = "http://localhost:3000/results/" + file + ".json.bz2";
+            var fileUrl = `${resultsPath}/${file}.json.bz2`;
             try {
                 var response = await fetch(fileUrl);
                 if (!response.ok) {

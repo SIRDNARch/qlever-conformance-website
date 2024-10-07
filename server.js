@@ -2,10 +2,11 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // Serve static files from the public directory
 app.use(express.static("public"));
+
 
 // Custom route to handle GET requests to /results
 app.get("/results", (req, res) => {
@@ -37,6 +38,21 @@ app.get("*", (req, res) => {
 });
 
 // Start the server
-app.listen(port, () => {
+const server = app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
+});
+
+// "Graceful" shutdown
+process.on("SIGTERM", () => {
+  console.log("SIGTERM signal received: closing HTTP server");
+  server.close(() => {
+      console.log("HTTP server closed");
+  });
+});
+
+process.on("SIGINT", () => {
+  console.log("SIGINT signal received: closing HTTP server");
+  server.close(() => {
+      console.log("HTTP server closed");
+  });
 });
