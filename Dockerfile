@@ -1,6 +1,6 @@
 FROM node:18
 
-WORKDIR /app
+WORKDIR /
 
 RUN mkdir -p /app/public/results
 
