@@ -2,7 +2,7 @@ FROM node:18
 
 WORKDIR /
 
-RUN mkdir -p /app/public/results
+RUN mkdir -p /public/results
 
 COPY . .
 
