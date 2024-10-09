@@ -10,9 +10,7 @@ Docker or NPM.
 
 1. Clone this repository.
 
-2. In the public/index.js file you need to change the website address to the address of the server. You do this by setting the const websiteAdress to the correct value.
-
-3. If you want to use it with the GitHub implementation read the README at https://github.com/SIRDNARch/qlever-conformance-upload-server
+2. If you want to use it with the GitHub implementation read the README at https://github.com/SIRDNARch/qlever-conformance-upload-server
 
 
 ## Starting the server
@@ -20,17 +18,13 @@ Docker or NPM.
 ### Using Docker
 
 ```
-docker build -t website-example . 
+docker build -t sparql-conformance-ui . 
 ```
 
 
 ```
-docker run -p 3001:3000 -v /Users/username/Desktop/project/results:/usr/src/app/results website-example
+docker run --name sparql-conformance-ui -d -p PORT:3000 -v path_to_mount:/public/results sparql-conformance-ui
 ```
-
-Explanation:
-
-The server will be reachable on the port 3001 of your machine.
 
 ```
 -v /Users/username/Desktop/project/results:/usr/src/app/results

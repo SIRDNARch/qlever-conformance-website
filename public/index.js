@@ -1,5 +1,3 @@
-const websiteAdress = "http://localhost:3001";
-
 $(document).ready(async function() {
     var data = await fetchData();
     var jsonData = data[0];
@@ -340,7 +338,8 @@ async function fetchData() {
     var loadAll = true;
     var jsonData = {};
     // TODO: fix URL
-    const resultsPath = `${websiteAdress}/results`;
+    const fullUrlWithoutPath = window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
+    const resultsPath = `${fullUrlWithoutPath}/results`;
     const fullPath = window.location.pathname;
     var fileName = fullPath.substring(fullPath.lastIndexOf('/') + 1);
     if (fileName.includes("-")) {
