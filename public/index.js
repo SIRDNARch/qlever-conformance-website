@@ -339,7 +339,7 @@ async function fetchData() {
     var jsonData = {};
     // TODO: fix URL
     const fullUrlWithoutPath = window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
-    const resultsPath = `${fullUrlWithoutPath}/results`;
+    const resultsPath = `${fullUrlWithoutPath}/results/`;
     const fullPath = window.location.pathname;
     var fileName = fullPath.substring(fullPath.lastIndexOf('/') + 1);
     if (fileName.includes("-")) {
