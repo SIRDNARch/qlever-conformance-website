@@ -1,14 +1,17 @@
 $(document).ready(async function() {
-    var data = await fetchData();
-    var jsonData = data[0];
-    var nameMap = data[1];
+    const {jsonData, loadAll, order} = await fetchData();
+    // TODO: fix name Map
+    const nameMap = {};
     var selectedRun = Object.keys(jsonData)[0];
-    $(`#table-select-runs1 tr[data-name=${selectedRun}]`).addClass("row-selected");
     var selectedRun2 = -1;
-    if (Object.keys(jsonData).length == 2) {
-        selectedRun2 = Object.keys(jsonData)[1]
-        handleAccordion("collapse-two", false);
+    if (!loadAll) {
+        selectedRun = order[0];
+        selectedRun2 = order[1];
+        $(`#table-select-runs2 tr[data-name=${selectedRun2}]`).addClass("row-selected");
     }
+    $(`#table-select-runs1 tr[data-name=${selectedRun}]`).addClass("row-selected");
+    handleAccordion("collapse-two", false);
+
     var getTestRunResult = getTestRun(selectedRun, selectedRun2, jsonData);
     var jsonArray = getTestRunResult[0]
     var compareRunInformation = getTestRunResult[1]
@@ -335,30 +338,23 @@ function decompressToJSON(compressedData) {
 }
 
 async function fetchData() {
-    var loadAll = true;
-    var jsonData = {};
-    // TODO: fix URL
-    const fullUrlWithoutPath = window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '') + "/sparql-conformance-ui";
-    const resultsPath = `${fullUrlWithoutPath}/results/`;
-    const fullPath = window.location.pathname;
-    var fileName = fullPath.substring(fullPath.lastIndexOf('/') + 1);
-    if (fileName.includes("-")) {
-        var parts = fileName.split('-');
-        run1 = parts[0];
-        run2 = parts[1];
-        loadAll = false;
-    }
-    
+    const queryString = window.location.search;
+    const loadAll = queryString ? false : true;
+    const baseUrl = new URL(window.location);
+    const resultsUrl = new URL('results', baseUrl);
+    const urlWithResultsPath = resultsUrl.href;
+
+    var order = [];
+
     // TODO: naming makes no sense atm.
     //var nameMap = await fetch("https://api.github.com/repos/SIRDNARch/test-web/contents/name_map.json").then(response => response.json());
-    nameMap = {}
-    let fileList = await fetch(resultsPath).then(response => response.json());
-    fileList = fileList.files
-    console.log(loadAll)
-    console.log(fileList)
+    var jsonData = {};
+    var nameMap = {}
     if (loadAll){
+        var fileList = await fetch(urlWithResultsPath).then(response => response.json());
+        fileList = fileList.files;
         for (var fileName of fileList) {
-            var fileUrl = `${resultsPath}/${fileName}`;
+            var fileUrl = `${urlWithResultsPath}/${fileName}`;
             console.log(fileUrl)
             try {
                 var response = await fetch(fileUrl);
@@ -367,23 +363,20 @@ async function fetchData() {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const compressedData = await response.arrayBuffer();
-                console.log(response)
                 var data = decompressToJSON(compressedData);
                 var name = fileName.replace(".json.bz2", "");
-                console.log(name)
                 jsonData[name] = data;
             } catch (error) {
                 console.error("Error fetching file:", fileName, error);
             }
         }
-    
         return [jsonData, nameMap];
-    }
-    else
-    {
-        fileList = [run1,  run2]
+    } else {
+        const urlParams = new URLSearchParams(queryString);
+        var fileList = [urlParams.get('cur'),  urlParams.get('prev')];
+        order = fileList;
         for (var file of fileList) {
-            var fileUrl = `${resultsPath}/${file}.json.bz2`;
+            var fileUrl = `${urlWithResultsPath}/${file}.json.bz2`;
             try {
                 var response = await fetch(fileUrl);
                 if (!response.ok) {
@@ -398,8 +391,7 @@ async function fetchData() {
                 console.error("Error fetching file:", file + ".json.bz2", error);
             }
         }
-    
-        return [jsonData, nameMap];
+        return {jsonData, loadAll, order};
     }
 }
 
