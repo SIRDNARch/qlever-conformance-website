@@ -332,7 +332,6 @@ function handleAccordion(itemId, collapse) {
 function decompressToJSON(compressedData) {
     const compressedArray = new Uint8Array(compressedData);
     const jsonString = bzip2.simple(bzip2.array(compressedArray));
-    console.log(jsonString)
     const data = JSON.parse(jsonString);
     return data;
 }
@@ -355,10 +354,8 @@ async function fetchData() {
         fileList = fileList.files;
         for (var fileName of fileList) {
             var fileUrl = `${urlWithResultsPath}/${fileName}`;
-            console.log(fileUrl)
             try {
                 var response = await fetch(fileUrl);
-                console.log(response)
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -370,7 +367,7 @@ async function fetchData() {
                 console.error("Error fetching file:", fileName, error);
             }
         }
-        return [jsonData, nameMap];
+        return {jsonData, loadAll, order};
     } else {
         const urlParams = new URLSearchParams(queryString);
         var fileList = [urlParams.get('cur'),  urlParams.get('prev')];
@@ -386,7 +383,6 @@ async function fetchData() {
                 var data = decompressToJSON(compressedData);
                 var name = file;
                 jsonData[name] = data;
-                console.log(jsonData)
             } catch (error) {
                 console.error("Error fetching file:", file + ".json.bz2", error);
             }
