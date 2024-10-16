@@ -94,6 +94,13 @@ $(document).ready(async function() {
         });
     });
 
+    $("#button-intended").on("click", function() {
+        var preNodes = document.querySelectorAll(`label.yellow`);
+        preNodes.forEach(function(label) {
+            label.classList.toggle("visually-hidden");
+        });
+    });
+
     $("#search-input").on("keyup", function() {
         var value = $(this).val();
         currentArray = filterTable(value, jsonArray);
