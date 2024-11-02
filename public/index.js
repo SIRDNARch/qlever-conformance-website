@@ -347,7 +347,7 @@ async function fetchData() {
     const queryString = window.location.search;
     const loadAll = queryString ? false : true;
     const baseUrl = new URL(window.location);
-    const resultsUrl = new URL('results', baseUrl);
+    const resultsUrl = new URL('results/', baseUrl);
     const urlWithResultsPath = resultsUrl.href;
 
     var order = [];
