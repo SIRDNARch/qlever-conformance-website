@@ -1,10 +1,10 @@
 $(document).ready(async function() {
-    const {jsonData, loadAll, order} = await fetchData();
+    const {jsonData, multiSelect, order} = await fetchData();
     // TODO: fix name Map
     const nameMap = {};
     var selectedRun = Object.keys(jsonData)[0];
     var selectedRun2 = -1;
-    if (!loadAll) {
+    if (multiSelect) {
         selectedRun = order[0];
         selectedRun2 = order[1];
         $(`#table-select-runs2 tr[data-name=${selectedRun2}]`).addClass("row-selected");
@@ -345,57 +345,98 @@ function decompressToJSON(compressedData) {
 
 async function fetchData() {
     const queryString = window.location.search;
-    const loadAll = queryString ? false : true;
     const baseUrl = new URL(window.location);
     const resultsUrl = new URL('results/', baseUrl);
     const urlWithResultsPath = resultsUrl.href;
+    // TODO: find solution when hosted locally to display results. Probably show all results.
+    const qleverGithubApiUrl = "https://api.github.com/repos/ad-freiburg/qlever/commits/master"
 
-    var order = [];
+    let order = [];
+    let jsonData = {};
+    let multiSelect = false;
 
-    // TODO: naming makes no sense atm.
-    //var nameMap = await fetch("https://api.github.com/repos/SIRDNARch/test-web/contents/name_map.json").then(response => response.json());
-    var jsonData = {};
-    var nameMap = {}
-    if (loadAll){
-        var fileList = await fetch(urlWithResultsPath).then(response => response.json());
-        fileList = fileList.files;
-        for (var fileName of fileList) {
-            var fileUrl = `${urlWithResultsPath}/${fileName}`;
-            try {
-                var response = await fetch(fileUrl);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const compressedData = await response.arrayBuffer();
-                var data = decompressToJSON(compressedData);
-                var name = fileName.replace(".json.bz2", "");
-                jsonData[name] = data;
-            } catch (error) {
-                console.error("Error fetching file:", fileName, error);
+    const urlParams = new URLSearchParams(queryString);
+    // If url has param all load all files, old behavior of no params set.
+    if (urlParams.has("all")) {
+        try {
+            const fileListResponse = await fetch(urlWithResultsPath);
+            if (!fileListResponse.ok) {
+                throw new Error(`HTTP error! status: ${fileListResponse.status}`);
             }
-        }
-        return {jsonData, loadAll, order};
-    } else {
-        const urlParams = new URLSearchParams(queryString);
-        var fileList = [urlParams.get('cur'),  urlParams.get('prev')];
-        order = fileList;
-        for (var file of fileList) {
-            var fileUrl = `${urlWithResultsPath}/${file}.json.bz2`;
-            try {
-                var response = await fetch(fileUrl);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+            const fileList = (await fileListResponse.json()).files;
+
+            for (const fileName of fileList) {
+                const fileUrl = `${urlWithResultsPath}/${fileName}`;
+                try {
+                    const response = await fetch(fileUrl);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const compressedData = await response.arrayBuffer();
+                    const name = fileName.replace(".json.bz2", "");
+                    jsonData[name] = decompressToJSON(compressedData);
+                } catch (error) {
+                    console.error("Error fetching file:", fileName, error);
                 }
-                const compressedData = await response.arrayBuffer();
-                var data = decompressToJSON(compressedData);
-                var name = file;
-                jsonData[name] = data;
-            } catch (error) {
-                console.error("Error fetching file:", file + ".json.bz2", error);
             }
+            return { jsonData, multiSelect, order };
+        } catch (error) {
+            console.error("Error fetching files:", error);
+            return { jsonData: {}, multiSelect, order: [] };
         }
-        return {jsonData, loadAll, order};
     }
+    // If no params are set load latest master commit.
+    if (!urlParams.has("cur") && !urlParams.has("prev")) {
+        try {
+            const masterResponse = await fetch(qleverGithubApiUrl);
+            if (!masterResponse.ok) {
+                throw new Error(`HTTP error! status: ${masterResponse.status}`);
+            }
+            const masterData = await masterResponse.json();
+            const masterHash = masterData.sha;
+            const fileUrl = `${urlWithResultsPath}/${masterHash}.json.bz2`;
+            const response = await fetch(fileUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const compressedData = await response.arrayBuffer();
+            jsonData[masterHash] = decompressToJSON(compressedData);
+            order = [masterHash];
+
+            return { jsonData, multiSelect, order };
+        } catch (error) {
+            console.error("Error fetching master file:", error);
+            return { jsonData: {}, multiSelect, order: [] };
+        }
+    }
+    // Now we either only have the cur or cur & prev.
+    const curCommit = urlParams.get("cur");
+    const prevCommit = urlParams.get("prev");
+
+    const commitsToLoad = [curCommit];
+    if (prevCommit) {
+        multiSelect = true;
+        commitsToLoad.push(prevCommit);
+    }
+    order = commitsToLoad;
+
+    for (const commit of commitsToLoad) {
+        if (!commit) continue;
+
+        const fileUrl = `${urlWithResultsPath}/${commit}.json.bz2`;
+        try {
+            const response = await fetch(fileUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const compressedData = await response.arrayBuffer();
+            jsonData[commit] = decompressToJSON(compressedData);
+        } catch (error) {
+            console.error("Error fetching file:", commit + ".json.bz2", error);
+        }
+    }
+
+    return { jsonData, multiSelect, order };
 }
 
 function getTestRun(run1, run2, jsonData) {
