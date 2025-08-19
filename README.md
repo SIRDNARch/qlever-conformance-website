@@ -1,6 +1,6 @@
 # qlever-conformance-website
 
-Website to visualize the results of the [qlever-conformance-tests](https://github.com/ad-freiburg/qlever-conformance-tests).
+Website to visualize the result files of the [sparql-conformance](https://github.com/ad-freiburg/sparql-conformance).
 
 ## Prerequisites
 
@@ -10,52 +10,22 @@ Docker.
 
 1. Clone this repository.
 
-2. If you want to use it with the GitHub implementation read the README at https://github.com/SIRDNARch/qlever-conformance-upload-server
+2. If you want to use it with the GitHub App + Workflow & upload server click [here](https://github.com/SIRDNARch/qlever-sparql-conformance-platform)
 
-## Starting the server
+3. If you just want to look at results: 
 
-### Using Docker compose
-
-1. Configure the docker-compose.yml
-2. Set the port to the port the website will be accessible at.
-3. Set the path to the path of the conformance result files. (Should be the same as for the conformance-upload-server)
-4. Use the following commands to start or shutdown.
-
-If you run it for the first time use to build the image.
-```
-docker-compose up --build -d
-```
-
-If you have already build the image just use.
-
-```
-docker-compose up -d
-```
-
-You can remove the ***-d*** if you do not want to start it in the detached mode.
-
-To ***shut down*** use
-
-```
-docker-compose down
-```
-
-Use this to access the interactive shell of the docker container:
-
-```
-docker-compose exec app /bin/sh
-```
-
-### Using Docker
-
+### Docker
+#### Build:
 ```
 docker build -t sparql-conformance-ui . 
 ```
 
+#### Run:
+Replace PORT and PATH
 ```
-docker run --name sparql-conformance-ui -d -p PORT:3000 -v path_to_mount:/public/results sparql-conformance-ui
+docker run --name sparql-conformance-ui -d -p PORT:3000 -v PATH:/public/results sparql-conformance-ui
 ```
-
+Example mount: 
 ```
 -v /Users/username/Desktop/project/results:/public/results
 ```
